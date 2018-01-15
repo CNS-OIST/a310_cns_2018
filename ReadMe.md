@@ -7,7 +7,7 @@ In modeling classes, we focus on implementing physiological concepts about how n
 
 ## Software
 
-We use NEURON 7.5 with Python 3.6. **We recommend using our [Docker container](https://en.wikipedia.org/wiki/Docker_(software)): ** NEURON has non-trivial dependency on Python, the C++ compiler, and other libraries (e.g., MPI), which is quite challenging for fist-time users to make right. **See the [installation guide](./docker/ReadMe.md) for how to install and use the Docker and container**. If you do not want to use this, we recommend compiling the source by following the [instruction]() carefully. We discourage installation via binary installers, which has been a source of frustration in the past.
+We use NEURON 7.5 with Python 3.6. **We recommend using our [Docker container](https://en.wikipedia.org/wiki/Docker_(software)):** NEURON has non-trivial dependency on Python, the C++ compiler, and other libraries (e.g., MPI), which is quite challenging for fist-time users to make right. **See the [installation guide](./docker/ReadMe.md) for how to install and use the Docker and container**. If you do not want to use this, we recommend compiling the source by following the [instruction]() carefully. We discourage installation via binary installers, which has been a source of frustration in the past.
 
 
 
@@ -36,3 +36,9 @@ TBA
 ### Modeling class #4 — April 12, 2018  
 
 TBA
+
+
+---
+_Written by Sungho Hong, Computational Neuroscience Unit, Okinawa Institutes of Science and Technology_
+
+_January 2018_
