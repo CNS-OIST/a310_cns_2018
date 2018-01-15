@@ -1,13 +1,13 @@
 # A310 Computational Neuroscience - Okinawa Institute of Science and Technology, Spring 2018
 This repository is for modeling practice materials and homework of Computational Neuroscience course at Okinawa Institute of Science and Technology in the 2018 spring quarter.
 
-In modeling classes, we focus on implementing physiological concepts about how neural systems function as computer simulations, which will help us understand how diverse phenomena in real neural systems arise from the underlying principles. For this, we will mainly use the [NEURON]() simulation platform, which uses [Python]() programming language for interface. We will also cover some basic analysis techniques for neural data, but most of our focus will be constructing models and running their simulations.
+In modeling classes, we focus on implementing physiological concepts about how neural systems function as computer simulations, which will help us understand how diverse phenomena in real neural systems arise from the underlying principles. For this, we will mainly use the [NEURON](https://www.neuron.yale.edu/neuron/) simulation platform, which uses [Python](https://www.python.org) programming language for interface. We will also cover some basic analysis techniques for neural data, but most of our focus will be constructing models and running their simulations.
 
 
 
 ## Software
 
-We use NEURON 7.5 with Python 3.6. **We recommend using our [Docker container](https://en.wikipedia.org/wiki/Docker_(software)):** NEURON has non-trivial dependency on Python, the C++ compiler, and other libraries (e.g., MPI), which is quite challenging for fist-time users to make right. **See the [installation guide](./docker/ReadMe.md) for how to install and use the Docker and container**. If you do not want to use this, we recommend compiling the source by following the [instruction]() carefully. We discourage installation via binary installers, which has been a source of frustration in the past.
+We use NEURON 7.5 with Python 3.6. **We recommend using our [Docker container](https://en.wikipedia.org/wiki/Docker_(software)):** NEURON has non-trivial dependency on Python, the C++ compiler, and other libraries (e.g., MPI), which is quite challenging for fist-time users to make right. **See the [installation guide](./docker/ReadMe.md) for how to install and use the Docker and container**. If you do not want to use this, we recommend compiling the source by following the [instruction](https://www.neuron.yale.edu/neuron/download/getstd) carefully. We discourage installation via binary installers, which has been a source of frustration in the past.
 
 
 
