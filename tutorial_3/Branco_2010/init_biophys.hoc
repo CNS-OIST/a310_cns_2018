@@ -1,0 +1,104 @@
+/*--------------------------------------------------------
+Insert passive and active properties in rc19 cell. 
+
+Option to have non-uniform resting Vm in basal dendrites
+
+Tiago Branco (2010)
+--------------------------------------------------------*/
+
+proc init_params() {
+    celsius = 37
+    Cm = 1
+    Rm = 10000  
+    Ri = 150
+    v_init = -75  
+}
+
+
+//-------------------------------------------------------
+//add passive properties
+//-------------------------------------------------------   
+
+proc init_passive(){
+    forall {insert pas g_pas = 1/Rm e_pas=v_init cm=Cm Ra=Ri}
+    axon {g_pas = 0.02}
+}
+
+proc nonunif_rm(){
+    a = $1
+    dendid = $2
+    x=1
+    access dend[dendid]
+    for(x,0) {
+	gm = 1/Rm*(1+2*a*(x-1/2))
+	g_pas(1-x) = gm
+    }
+}
+
+
+
+//-------------------------------------------------------
+//add active properties
+//-------------------------------------------------------   
+proc init_active_params(){
+    Ek = -90
+    Ena = 60
+    Eca = 140
+    vshift_na = -5
+    vshift_ca = 0
+    
+    gna_axon = 30000
+    gkv_axon = 400
+    
+    gna_soma = 1500
+    gkv_soma = 200
+    gkm_soma = 2.2
+    gkca_soma = 2.5
+    gca_soma = 0.5
+    git_soma = 0.0003
+    
+    gna_dend = 40      
+    gkv_dend = 30      
+    gkm_dend = 0.05    
+    gkca_dend = 2.5   
+    gca_dend = 0.5  
+    git_dend = 0.0006
+    gh_dend = 0
+}
+
+proc init_active(){
+    
+    forsec axonal {
+	insert na          gbar_na = gna_axon
+        insert kv          gbar_kv = gkv_axon
+    }
+    
+    forsec somatic {
+	insert na          gbar_na = gna_soma
+	insert kv          gbar_kv = gkv_soma
+	insert km          gbar_km = gkm_soma
+	insert kca         gbar_kca = gkca_soma
+	insert ca          gbar_ca = gca_soma
+	insert it          gbar_it = git_soma
+    }
+
+    forsec basal {
+	insert na          gbar_na = gna_dend
+	insert kv          gbar_kv = gkv_dend
+	insert km          gbar_km = gkm_dend
+	insert kca         gbar_kca = gkca_dend
+	insert ca          gbar_ca = gca_dend
+	insert it          gbar_it = git_dend
+	insert hd          ghdbar_hd = gh_dend
+}
+   
+   forall if(ismembrane("k_ion"))  ek = Ek
+   forall if(ismembrane("na_ion")) ena = Ena
+   forall if(ismembrane("ca_ion")) {
+       ion_style("ca_ion",0,1,0,0,0)
+       vshift_ca = 0
+  }
+}
+
+    
+    

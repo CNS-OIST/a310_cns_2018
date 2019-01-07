@@ -1,0 +1,177 @@
+proc init_params() {
+//	strdef somareadfile, dendreadfile
+///*	somareadfile="ri18scs.asc" */
+///*	dendreadfile="ri18dcs.asc" */
+//	somav="dend1[21].v(0.5)"     /* somatic recording site */
+//	dendv="dend1[183].v(0.01)"   /* dendritic recording site */
+//	if (syn>0) {
+//		dendv="dend1[184].v(0.5)" /* dendritic recording site for synaptics */
+//	}
+//	tuftv="dend1[235].v(0.5)"   /* dendritic recording site */
+//	basalv="dend1[866].v(0.5)"  /* distal end of basal beginning at 808 */
+
+	/* initialize user-defined membrane parameters */
+	celsius = 35
+	global_ra=151   /* internal resistivity in ohm-cm */
+	Cm=1.0          /* specific membrane capacitance in uF/cm^2 */
+	Rm=23375        /* specific membrane resistivity in ohm-cm^2 */
+ 	Vleak=-76		/* leak reversal */
+	Vrest=-76		/* resting potential */
+//	qblock=0		/* fraction of q current blocked by Cs */
+	nablock=1       /* fraction of na current blocked by TTX */
+	kblock=1        /* fraction of k current blocked */
+	spinescale=2.0  /* scale total area to account for spines */
+	areascale=1.30  /* scale total area by an additional factor */
+	target=53.6     /* input resistance target in CsCl */
+	/* attenuation is 0.485 in CsCl */
+}
+
+
+proc init_nonuniform_Rm() {
+  /* init_pass2 (nonuniform Rm with no sag) */
+		global_ra=68.022
+		rmsoma = 34963
+
+
+		from
+		rmend = 5357
+		rmhalfdis=405.84
+		rmsteep=50
+		Cm=1.5431
+		areascale=1.0
+		/* determined from fits of five free parameters with rmsteep=50 fixed */
+}
+
+
+
+proc insert_pass() {
+	print "Inserting passive membrane properties\n"
+	forall {insert pas Ra=global_ra e_pas=Vleak}
+}
+
+
+proc init_pass1() {
+    // Cm=$1
+	dendscale=spinescale*areascale
+	somascale=areascale*1.0
+	print "Initializing uniform passive membrane properties\n"
+	forall { g_pas=1/(Rm/dendscale) cm=Cm*dendscale Ra=global_ra e_pas=Vleak}
+	/* the following segments are NOT scaled for spines */
+	/* these include the axon, soma, 1st 100 um of apical trunk, */
+	/*  and the 1st 20 um of basals */
+	/* the reconstructed axon */
+	axon {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	soma {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	for i=0,13 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	/* the real soma */
+	for i=14,27 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	/* the 1st 100 um of the apical trunk */
+	for i=28,32 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=43,47 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=71,72 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	/* the 1st 20 um of the basals */
+	for i=777,778 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=808,810 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=923,924 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=957,959 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=1006,1007 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=1055,1058 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=1059,1060 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+	for i=1067,1069 {
+		dend1[i] {g_pas=1/(Rm/somascale) cm=Cm*somascale }
+	}
+}
+
+proc init_pass2() {
+    // Cm=$1
+	dendscale=spinescale*areascale
+	somascale=areascale*1.0
+	/* sigmoidal decrease in Rm from rmsoma to rmend */
+	/* rmsoma and rmend, and rmhalfdis and rmsteep are set in init_params */
+	/* differs from nurm3 in that function applies to basal dendrites also */
+	maxdis=1113
+	dis=0
+	access dend1[21]
+	area(0.5)
+	distance()
+	print "Initializing nonuniform passive membrane properties with nurm4\n"
+	forall {g_pas=1/(rmsoma/dendscale) cm=Cm*dendscale Ra=global_ra e_pas=Vleak}
+	for i=0,1090 {
+		access dend1[i]
+		dis=distance(0)
+		rmpoint=rmend+(rmsoma-rmend)/(1+exp((dis-rmhalfdis)/rmsteep))
+		dend1[i] {g_pas=1/(rmpoint/dendscale) }
+	}
+	/* the following segments are NOT scaled for spines */
+	/* these include the axon, soma, 1st 100 um of apical trunk, */
+	/*  and the 1st 20 um of basals */
+	/* the reconstructed axon */
+	axon { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	soma { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	for i=0,13 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	/* the real soma */
+	for i=14,27 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	/* the 1st 100 um of the apical trunk */
+	for i=28,32 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=43,47 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=71,72 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	/* the 1st 20 um of the basals */
+	for i=777,778 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=808,810 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=923,924 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=957,959 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=1006,1007 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=1055,1058 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=1059,1060 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+	for i=1067,1069 {
+		dend1[i] { g_pas=g_pas*somascale/dendscale cm=Cm*somascale/dendscale }
+	}
+}

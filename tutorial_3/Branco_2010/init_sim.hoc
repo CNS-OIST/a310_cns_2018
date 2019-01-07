@@ -1,0 +1,103 @@
+/*--------------------------------------------------------
+
+Start simulation with a passive model, placing 9 equally spaced
+synapses on a basal dendrite and activating them in two opposite
+sequences (IN and OUT) at increasing stimulation intervals (0-5 ms)
+
+Synapse location: synapse_loc.dat (syn 0 is most distal)
+
+Stimulation sequence: order_single.dendrite.dat
+
+
+Tiago Branco (2010)
+--------------------------------------------------------*/
+
+//load cell morphology and add passive and active properties
+
+xopen("./rc19.hoc")
+xopen("./init_biophys.hoc")
+xopen("./init_synapses.hoc")
+
+init_params()
+init_passive()
+//init_active_params()   //uncoment to make model active
+//init_active()	       //uncoment to make model active
+init_syn_params()
+
+
+//add synapses 
+nsyn = mloc.nrow
+init_syns(nsyn)
+
+tstop = 200
+//start panels and graphs
+proc PlotV() {
+    newPlot (0, tstop, $1, $2)
+    graphItem.save_name("graphList[0].")
+    graphList[0].append(graphItem)
+    graphItem.addexpr("v(.5)")
+}
+
+PlotV(v_init-5, -30)
+nrncontrolmenu()
+
+// read file with stimulation order
+objref morder, forder
+forder = new File("./synapse_order.dat")
+forder.ropen()
+morder = new Matrix()
+morder.scanf(forder)
+
+nTs = 9   //number of time intervals 
+nSeq = morder.nrow   //number of different sequences to test
+
+
+//setup recording vectors
+objref storev, recv, storeMes
+storev = new Matrix(tstop/dt, nTs*nSeq)  //to store the somatic voltage trace for different intervals on one sequence
+recv = new Vector()
+recv.record(&soma.v(0.5))
+storeMes = new Matrix(nTs, nSeq) //to store the EPSP peak for each condition
+
+
+objref r
+r = new Random()
+
+//go for it
+for n = 0, nSeq-1 {
+    
+    print n   
+    access soma
+    for ti = 0, nTs-1 {
+	
+	tonset = 50
+	for od=0, nsyn-1 {  
+	    s  = morder.x[n][od] 
+	    jitter = r.uniform(-0, 0)  //to introduce jitter as in Fig. S14
+	    cAMPA[s].onset = tonset+od*ti + jitter
+	    PRE[s].del_rel = tonset+od*ti + jitter
+	} 
+	run()
+
+	for t = 0, storev.nrow-1 {
+	    storev.x[t][ti+n*nTs] = recv.x[t]  
+	    recv.x[t] = recv.x[t] - v_init
+	}
+	storeMes.x[ti][n] = recv.max()
+    }
+}
+
+
+
+//save data
+objref savv, savm
+savv = new File()
+savm = new File()
+savv.wopen("./tempV.dat")
+savm.wopen("./tempM.dat")
+storev.fprint(0, savv, "%f ")
+storeMes.fprint(0, savm, "%f ")  
+savv.close()
+savm.close()
+
+

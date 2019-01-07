@@ -1,0 +1,4 @@
+//moddir mod.files
+load_file("nrngui.hoc")
+load_file("init_sim.hoc")
+

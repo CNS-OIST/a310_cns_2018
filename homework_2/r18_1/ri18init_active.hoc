@@ -1,0 +1,165 @@
+//  /* init_pass1 with initq1 (uniform Rm and uniform gh) */
+//	if ((initq==1) && (qblock<1)) {
+//		print "uniform Rm and uniform gh"
+//		maxq=0.000072
+//		zeta_q=7.2
+//		a0_q=0.00034
+//		b0_q=a0_q
+//		Vleak=-76
+//	}
+//  /* init_pass2 with initq1 (nonuniform Rm and uniform gh) */
+//	if ((initq>1) && (ipass>1) && (qblock<1)) {
+//		print "nonuniform Rm and uniform gh"
+//		maxq=0.0000282
+//		Vleak=-76
+//		zeta_qq=7.2
+//		erevq_qq=-43
+//		vhalf_qq=-81
+//		a0_qq=0.00034  	/* this value gives taus similar to */
+//		b0_qq=a0_qq	/* Solmon & Nerbonne, but are too slow, */
+//				/* hence the very large qten */
+//		/* qten_qq=33 */
+//		qten_qq=23.5
+//	}
+//  /* init_pass2 with initq2 (nonuniform Rm and nonuniform gh */
+// 	if ((initq>0) && (ipass>1) && (qblock<1)) {
+//		print "nonuniform Rm and gh"
+//		qscale=0.0010001
+//		maxq=0.01996
+//		qhalfdis=438.52
+//		qsteep=50
+//		Vleak=-76
+//		zeta_qq=7.2
+//		erevq_qq=-43
+//		vhalf_qq=-81 /* was -81 a la Solmon and Nerbonne */
+//		a0_qq=0.00034  	/* this value gives taus similar to */
+//		b0_qq=a0_qq	/* Solmon & Nerbonne, but are too slow, */
+//				/* hence the very large qten */
+//		qten_qq=3.7963 /* was 7.263 for Vleak=-82 */
+//	}
+//}
+
+proc insertq() {
+	printf("Inserting sag conductance in all segments: %d pecent blocked\n",qblock*100)
+	// forall { insert qq gqbar_qq=0 }
+}
+
+
+proc initq1() {
+	qten_qq=$1*10
+	/* uniform sag conductance in all compartments */
+	forall { gqbar_qq=maxq*dendscale*(1-qblock) }
+	printf("Initializing uniform sag conductance in all segments\n")
+	/* the reconstructed axon */
+	axon { gqbar_qq=0}
+	soma { gqbar_qq=maxq*somascale*(1-qblock)}
+	for i=0,13 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock) }
+	}
+	/* the real soma */
+	for i=14,27 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	/* the 1st 100 um of the apical trunk */
+	for i=28,32 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=43,47 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=71,72 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	/* the 1st 20 um of the basals */
+	for i=777,778 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=808,810 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=923,924 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=957,959 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=1006,1007 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=1055,1058 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=1059,1060 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+	for i=1067,1069 {
+		dend1[i] { gqbar_qq=maxq*somascale*(1-qblock)}
+	}
+}
+
+proc initq2() {
+	qten_qq=$1
+	/* scale up sag conductance as a sigmoidal function of distance from the soma */
+	/* q=minq+(maxq-minq)/(1+exp((-dis-qhalfdis)/qsteep)) */
+	/* minq=qscale*maxq */
+	/* set maxq, qscale, and qhalfdis and qsteep in init_params */
+	maxdis=1113
+	minq=qscale*maxq
+	dis=0
+	access dend1[21]
+	area(0.5)
+	distance()
+	printf("Initializing sag conductance in all segments with initq2\n")
+	forall { gqbar_qq=0 }
+	for i=0,1090 {
+		access dend1[i]
+		dis=distance(0)
+		gqbar_qq=minq+(maxq-minq)/(1+exp(-(dis-qhalfdis)/qsteep))
+		gqbar_qq=gqbar_qq*dendscale*(1-qblock)
+	}
+	/* the reconstructed axon */
+	axon { gqbar_qq=0 }
+	soma { gqbar_qq=0 }
+	for i=0,13 {
+		dend1[i] { gqbar_qq=0 }
+	}
+	/* the real soma */
+	for i=14,27 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	/* the 1st 100 um of the apical trunk */
+	for i=28,32 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=43,47 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=71,72 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	/* the 1st 20 um of the basals */
+	for i=777,778 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=808,810 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=923,924 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=957,959 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=1006,1007 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=1055,1058 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=1059,1060 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+	for i=1067,1069 {
+		dend1[i] { gqbar_qq=gqbar_qq*somascale/dendscale }
+	}
+}
